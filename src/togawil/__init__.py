@@ -165,7 +165,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
         return initial_attributes, children, current_widget_attributes, 0
 
     res = workie()
-    return res[1][0] if type(res) is tuple else res
+    return res[1][0]
 
 
 def _return_widget_instance(widget_type_name, widget_type_attributes) -> toga.Widget:
