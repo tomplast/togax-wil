@@ -122,8 +122,6 @@ def load_widget_from_string(string: str) -> toga.Widget:
                                 current_widget_name, current_widget_attributes
                             )
                         )
-                    else:
-                        raise NotImplementedError()
                     return {}, children, {}, 0
 
                 next_line = lines.peek_next_line()
