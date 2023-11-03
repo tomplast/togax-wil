@@ -60,6 +60,9 @@ Box:
     widget = load_widget_from_string(widget_string)
     assert type(widget) is toga.Box
 
+    assert widget.id == "box1"
+    assert widget.children[0].id == "box2"
+
     assert type(widget.children[0]) is toga.Box
     assert (
         type(widget.children[0].children[0]) is toga.Label
