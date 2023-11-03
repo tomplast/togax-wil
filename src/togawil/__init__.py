@@ -180,7 +180,6 @@ def _return_widget_instance(widget_type_name, widget_type_attributes) -> toga.Wi
 def _return_widget_with_children(
     widget_type_name, widget_type_attributes, child_widgets: list[toga.Widget]
 ):
-    # getattr(toga, widget_type_name)(**widget_type_attributes)
     widget = _return_widget_instance(widget_type_name, widget_type_attributes)
     for child in child_widgets:
         widget.add(child)
