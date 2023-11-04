@@ -68,6 +68,8 @@ def load_widget_from_string(string: str) -> toga.Widget:
                         )
                     )
 
+                    current_widget_attributes = {}
+
                 if initial_attributes == {}:
                     initial_attributes = current_widget_attributes
 
@@ -104,7 +106,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
                 if returned_initial_attributes != {}:
                     children.append(
                         _return_widget_with_children(
-                            current_key, initial_attributes, returned_children
+                            current_key, returned_initial_attributes, returned_children
                         )
                     )
                     current_widget_name = None

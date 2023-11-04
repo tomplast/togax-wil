@@ -128,6 +128,7 @@ Box:
 def test_box_ception():
     widget_string = '''
 Box:
+    id: "box1"
     Box:
         Box:
             Box:
