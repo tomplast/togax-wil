@@ -153,6 +153,8 @@ def load_widget_from_string(string: str) -> toga.Widget:
                     return initial_attributes, [widget], {}, 0
 
             elif next_indentation < current_indentation:
+                if current_widget_name:
+                    children.append(_return_widget_instance(current_widget_name, current_widget_attributes))
                 return initial_attributes, children, current_widget_attributes, 0
 
             lines.next()

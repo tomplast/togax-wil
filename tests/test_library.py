@@ -143,3 +143,27 @@ Box:
     for i in range(0, 5):
         child = child.children[0] if child != None else widget.children[0]
         assert type(child) is toga.Box
+
+def test_another_thing():
+    widget_string = """
+Box:
+    style:
+        direction: row
+
+    Box:
+        style:
+            direction: column
+        TextInput:
+            id: 'text_1'
+
+        TextInput:
+
+    Box:
+        style:
+            direction: column
+        Button:
+            text: 'Hello World'
+"""
+    widget = load_widget_from_string(widget_string)
+    assert type(widget) is toga.Box
+    assert len(widget.children[0].children) == 2
