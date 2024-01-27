@@ -23,6 +23,6 @@ Box:
 """)
 
 accessor = BreadcrumbAccessor(widget)
-button = accessor['box1.button1']
+button = accessor['button1']
 ```
 
