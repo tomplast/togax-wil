@@ -4,7 +4,6 @@ import toga.style  # type: ignore
 from typing import Optional
 import re
 
-
 LINE_SYNTAX = re.compile(r"^( *)([a-zA-Z_\?]+:) *?([a-zA-Z0-9_\? \'\"]+|) *$")
 
 
@@ -49,131 +48,123 @@ def extract_line_parts(line):
 def load_widget_from_string(string: str) -> toga.Widget:
     lines = LineReader([x for x in string.split("\n") if len(x) > 0])
 
-    def workie():
-        initial_attributes = {}
+    def process_level(initial_indentation):
         current_widget_name = None
         current_widget_attributes = {}
-        current_widget_attribute = None
+        parent_widget_attributes = {}
         children = []
 
         while line := lines.get_current_line():
-            current_indentation, current_key, current_value = extract_line_parts(line)
-            is_widget = current_key[0].istitle()
+            _, key, value = extract_line_parts(line)
+
+            is_widget = key[0].istitle()
 
             if is_widget:
-                if current_widget_name:
+                if current_widget_name != None:
                     children.append(
                         _return_widget_instance(
                             current_widget_name, current_widget_attributes
                         )
                     )
-
                     current_widget_attributes = {}
 
-                if initial_attributes == {}:
-                    initial_attributes = current_widget_attributes
-
-                current_widget_name = current_key
-                current_widget_attributes = {}
-                current_widget_attribute = None
+                current_widget_name = key
             else:
-                current_widget_attributes[current_key] = current_value
-                current_widget_attribute = current_key
+                parent_widget_attributes[key] = value
 
             next_line = lines.peek_next_line()
-            if not next_line:
-                break
-
-            next_indentation, *_ = extract_line_parts(next_line)
-
-            if next_indentation > current_indentation:
+            if next_line:
                 lines.next()
-                (
-                    returned_initial_attributes,
-                    returned_children,
-                    returned_attributes,
-                    negative_jump,
-                ) = workie()
+                next_indentation, *_ = extract_line_parts(next_line)
+                if next_indentation > initial_indentation:
+                    (
+                        returned_children,
+                        returned_attributes,
+                        negative_jump,
+                    ) = process_level(next_indentation)
 
-                if current_widget_attribute != None:
-                    current_widget_attributes[
-                        current_widget_attribute
-                    ] = returned_attributes
-                    current_widget_attribute = None
-                else:
-                    current_widget_attributes.update(returned_attributes)
-
-                if returned_initial_attributes != {}:
-                    children.append(
-                        _return_widget_with_children(
-                            current_key, returned_initial_attributes, returned_children
+                    if len(returned_children) > 0:
+                        children.extend(
+                            [
+                                _return_widget_with_children(
+                                    current_widget_name,
+                                    returned_attributes,
+                                    returned_children,
+                                )
+                            ]
                         )
-                    )
-                    current_widget_name = None
-                    current_widget_attributes = {}
-                    current_widget_attribute = None
-                    returned_children = []
+                        returned_attributes = {}
+                        current_widget_name = None
 
-                for child in returned_children:
-                    children.append(child)
+                    if returned_attributes != {}:
+                        if is_widget:
+                            current_widget_attributes |= returned_attributes
+                        else:
+                            parent_widget_attributes[key] = returned_attributes
 
-                if negative_jump < 0:
-                    if current_widget_name:
+                    if int(negative_jump) > 1:
+                        if current_widget_name != None:
+                            if parent_widget_attributes != {}:
+                                children.append(_return_widget_instance(current_widget_name, current_widget_attributes))
+                            else:
+                                children = [
+                                    _return_widget_with_children(
+                                        current_widget_name,
+                                        current_widget_attributes,
+                                        children,
+                                    )
+                                ]
+                            current_widget_attributes = {}
+
+                        return (
+                            children,
+                            parent_widget_attributes,
+                            int(negative_jump) - 1,
+                        )
+
+                elif next_indentation < initial_indentation:
+                    if current_widget_name != None:
                         children.append(
                             _return_widget_instance(
                                 current_widget_name, current_widget_attributes
                             )
                         )
-                    return {}, children, {}, 0
+                        current_widget_attributes = {}
+                    return (
+                        children,
+                        parent_widget_attributes,
+                        (initial_indentation - next_indentation) / 4,
+                    )
+            else:
+                lines.next()
 
-                next_line = lines.peek_next_line()
-                next_indentation = current_indentation
-                if next_line != None:
-                    next_indentation, *_ = extract_line_parts(next_line)
-
-                if not next_line or (next_indentation - current_indentation) < 0:
-                    if not current_widget_name:
-                        return (
-                            initial_attributes,
-                            children,
-                            current_widget_attributes,
-                            next_indentation - current_indentation,
-                        )
-
-                    widget = _return_widget_instance(
+        # We ran out of lines
+        if current_widget_name != None:
+            if initial_indentation > 0 and len(children) > 0:
+                children.append(
+                    _return_widget_instance(
                         current_widget_name, current_widget_attributes
                     )
-                    if not widget.can_have_children:
-                        children.append(widget)
-                        return initial_attributes, children, {}, 0
+                )
+                return children, parent_widget_attributes, 1
 
-                    for child in children:
-                        widget.add(child)
-
-                    return initial_attributes, [widget], {}, 0
-
-            elif next_indentation < current_indentation:
-                if current_widget_name:
-                    children.append(_return_widget_instance(current_widget_name, current_widget_attributes))
-                return initial_attributes, children, current_widget_attributes, 0
-
-            lines.next()
-
-        if current_widget_name:
-            children.append(
-                _return_widget_instance(current_widget_name, current_widget_attributes)
+            return (
+                [
+                    _return_widget_instance(
+                        current_widget_name, current_widget_attributes
+                    )
+                ],
+                parent_widget_attributes,
+                1,
             )
-            current_widget_name = None
-            current_widget_attributes = {}
+        else:
+            return children, parent_widget_attributes, 1
 
-        return initial_attributes, children, current_widget_attributes, 0
-
-    res = workie()
-    return res[1][0]
+    return process_level(0)[0][0]
 
 
 def _return_widget_instance(widget_type_name, widget_type_attributes) -> toga.Widget:
-    if "style" in widget_type_attributes:
+    if "style" in widget_type_attributes and widget_type_attributes["style"] != "":
         widget_type_attributes["style"] = toga.style.Pack(
             **widget_type_attributes["style"]
         )

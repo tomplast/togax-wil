@@ -24,10 +24,13 @@ Box:
 def test_load_two_level_widget_tree_from_string():
     widget_string = """
 Box:
+    id: 'box1'
     PasswordInput:
     Label:
+        id: 'label1'
         text: 'Password is "password"'
     Button:
+        id: 'button1'
         text: 'Authenticate'
 """
 
@@ -37,10 +40,12 @@ Box:
     assert type(widget.children[0]) is toga.PasswordInput
     assert (
         type(widget.children[1]) is toga.Label
+        and widget.children[1].id == 'label1'
         and widget.children[1].text == 'Password is "password"'
     )
     assert (
         type(widget.children[2]) is toga.Button
+        and widget.children[2].id == "button1"
         and widget.children[2].text == "Authenticate"
     )
 
@@ -84,8 +89,7 @@ Box:
             Label:
                 text: 'Am I living in a box?'
                 style:
-                    padding: '50
-
+                    padding: '50'
     Label:
         text: 'Am I living in a cardboard box?'
 """
@@ -108,14 +112,15 @@ def test_widget_tree_with_attributes():
     widget_string = """
 Box:
     Label:
-        text: 'Am I living in a box?'
+        text: "Am I living in a box?"
         style:
             padding: 50
-
     Box:
         PasswordInput:
-        style:
-            padding: 50"""
+            style:
+                padding: 50
+    TextInput:  
+"""
 
     widget = load_widget_from_string(widget_string)
     assert type(widget) is toga.Box
@@ -124,6 +129,7 @@ Box:
     assert widget.children[0].text == "Am I living in a box?"
     assert widget.children[0].style.padding == (50, 50, 50, 50)
 
+    assert type(widget.children[2]) is toga.TextInput
 
 def test_box_ception():
     widget_string = '''
@@ -134,8 +140,8 @@ Box:
             Box:
                 Box:
                     Box:
-                    Label:
-                        text: "Label"'''
+                        Label:
+                            text: "Label"'''
     widget = load_widget_from_string(widget_string)
     assert type(widget) is toga.Box
 
@@ -164,6 +170,50 @@ Box:
         Button:
             text: 'Hello World'
 """
+    widget_string = """
+Box:
+    style:
+        direction: row
+
+    Box:
+        style:
+            direction: column
+        TextInput:
+            id: 'text_1'
+
+        TextInput:
+"""
     widget = load_widget_from_string(widget_string)
     assert type(widget) is toga.Box
+    assert widget.style.direction == 'row'
     assert len(widget.children[0].children) == 2
+    assert widget.children[0].style.direction == 'column'
+    assert type(widget.children[0].children[0]) is toga.TextInput 
+    assert widget.children[0].children[0].id == 'text_1'
+
+def test_yet_another_thing():
+    widget_string = """
+Box:
+    style:
+        direction: column
+    Box:
+        style:
+            direction: row
+
+        TextInput:
+            style:
+                flex: 1
+        Button:
+            text: 'Press me'
+            style:
+                width: 50
+                padding_left: 5
+
+    WebView:
+        style:
+            flex: 1
+
+
+"""
+    widget = load_widget_from_string(widget_string)
+    assert type(widget) is toga.Box
