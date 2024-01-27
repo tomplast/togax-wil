@@ -1,23 +1,81 @@
-[tool.poetry]
-name = "togawil"
-version = "0.1.0"
-description = ""
-authors = ["Tomas Gustavsson <tomplast@gmail.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = ">=3.10, <=3.12"
-toga = "^0.3.1"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.2"
-pytest-coverage = "^0.0"
-mypy = "^1.6.0"
-radon = "^6.0.1"
-pytest-cov = "^4.1.0"
-memray = "^1.10.0"
-pytest-memray = "^1.5.0"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "togawil"
+dynamic = ["version"]
+description = 'Load togawil widgets from YAML like format'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Tomas Gustavsson", email = "tomplast@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = ["toga==0.4.1"]
+
+[project.urls]
+Documentation = "https://github.com/tomplast/togawil#readme"
+Issues = "https://github.com/tomplast/togawil/issues"
+Source = "https://github.com/tomplast/togawil"
+
+[tool.hatch.version]
+path = "src/togawil/__about__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+]
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.types]
+dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/togawil tests}"
+
+[tool.coverage.run]
+source_pkgs = ["togawil", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/togawil/__about__.py",
+]
+
+[tool.coverage.paths]
+togawil = ["src/togawil", "*/togawil/src/togawil"]
+tests = ["tests", "*/togawil/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
