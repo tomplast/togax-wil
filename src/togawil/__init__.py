@@ -4,7 +4,7 @@ import toga.style  # type: ignore
 from typing import Optional
 import re
 
-LINE_SYNTAX = re.compile(r"^( *)([a-zA-Z_\?]+:) *?([a-zA-Z0-9_\? \'\"]+|) *$")
+LINE_SYNTAX = re.compile(r"^( *)([a-zA-Z_\?]+:) *?([\=\.\:\/\&a-zA-Z0-9_\? \'\"]+|) *$")
 
 
 class LineReader:

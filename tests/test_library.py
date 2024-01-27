@@ -264,3 +264,9 @@ Box:
 
     with pytest.raises(KeyError):
         BreadcrumbAccessor(widget)['button1']
+
+def test_webview_view_url():
+    widget = load_widget_from_string("""
+WebView:
+    url: 'http://www.example.com?q=1&x=5'
+""")
