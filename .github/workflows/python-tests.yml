@@ -28,6 +28,6 @@ jobs:
       run: |
         python -m pip install hatch toga
     - name: Coverage
-      run: hatch run cov
+      run: xvfb-run -a  hatch run cov
     - name: Tests
       run: xvfb-run -a hatch run +py=${{ matrix.python-version }} test:test 
