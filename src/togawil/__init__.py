@@ -45,6 +45,31 @@ def extract_line_parts(line):
     return indentation_count, key, value
 
 
+class BreadcrumbAccessor:
+    """Access widget tree through ['child_id.child_id.child_id...']"""
+
+    def __init__(self, widget: toga.Widget):
+        self._widget = widget
+
+    def __getitem__(self, key) -> toga.Widget:
+        o = None
+        current_widget = None
+        current_path = ""
+
+        for k in key.split("."):
+            current_path = current_path + f"{k}."
+            try:
+                current_widget = next(
+                    x for x in (current_widget or self._widget).children if x.id == k
+                )
+            except StopIteration:
+                raise Exception(
+                    f"Could not find widget with id {k} in {current_widget} ({current_path.rstrip('.')})"
+                )
+
+        return current_widget
+
+
 def load_widget_from_string(string: str) -> toga.Widget:
     lines = LineReader([x for x in string.split("\n") if len(x) > 0])
 
@@ -105,7 +130,11 @@ def load_widget_from_string(string: str) -> toga.Widget:
                     if int(negative_jump) > 1:
                         if current_widget_name != None:
                             if parent_widget_attributes != {}:
-                                children.append(_return_widget_instance(current_widget_name, current_widget_attributes))
+                                children.append(
+                                    _return_widget_instance(
+                                        current_widget_name, current_widget_attributes
+                                    )
+                                )
                             else:
                                 children = [
                                     _return_widget_with_children(

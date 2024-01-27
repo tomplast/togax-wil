@@ -1,4 +1,4 @@
-from togawil import load_widget_from_string
+from togawil import BreadcrumbAccessor, load_widget_from_string
 import toga
 
 
@@ -199,11 +199,13 @@ Box:
     Box:
         style:
             direction: row
+        id: "box1"
 
         TextInput:
             style:
                 flex: 1
         Button:
+            id: "button1"
             text: 'Press me'
             style:
                 width: 50
@@ -217,3 +219,35 @@ Box:
 """
     widget = load_widget_from_string(widget_string)
     assert type(widget) is toga.Box
+
+def test_breadcrumb_accessor():
+    widget_string = """
+Box:
+    style:
+        direction: column
+    Box:
+        style:
+            direction: row
+        id: "box1"
+
+        TextInput:
+            style:
+                flex: 1
+        Button:
+            id: "button1"
+            text: 'Press me'
+            style:
+                width: 50
+                padding_left: 5
+
+    WebView:
+        style:
+            flex: 1
+
+
+"""
+    widget = load_widget_from_string(widget_string)
+
+    accessor = BreadcrumbAccessor(widget)
+    button1 = accessor['box1.button1']
+    assert type(button1) is toga.Button 
