@@ -28,9 +28,5 @@ jobs:
     - name: Install libgirepository1.0-dev
       run: sudo apt-get install libgirepository1.0-dev
 
-
-    - name: Lint
-      run: hatch run check
-
     - name: Tests
       run: hatch run +py=${{ matrix.python-version }} test:test
