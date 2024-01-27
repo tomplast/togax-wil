@@ -1,3 +1,4 @@
+import pytest
 from togawil import BreadcrumbAccessor, load_widget_from_string
 import toga
 
@@ -251,3 +252,15 @@ Box:
     accessor = BreadcrumbAccessor(widget)
     button1 = accessor['box1.button1']
     assert type(button1) is toga.Button 
+
+
+def test_invalid_accessor_use():
+    widget = load_widget_from_string("""
+Box:
+    Button:
+        id: 'mybutton'
+        text: "My button"
+""")
+
+    with pytest.raises(KeyError):
+        BreadcrumbAccessor(widget)['button1']

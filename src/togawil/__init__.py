@@ -63,7 +63,7 @@ class BreadcrumbAccessor:
                     x for x in (current_widget or self._widget).children if x.id == k
                 )
             except StopIteration:
-                raise Exception(
+                raise KeyError (
                     f"Could not find widget with id {k} in {current_widget} ({current_path.rstrip('.')})"
                 )
 
