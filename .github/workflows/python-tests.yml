@@ -22,10 +22,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install APT packages
-      run: sudo apt install pkg-config python3-dev libgirepository1.0-dev libcairo2-dev gir1.2-webkit2-4.0 libcanberra-gtk3-module
+      run: sudo apt install xvfb pkg-config python3-dev libgirepository1.0-dev libcairo2-dev gir1.2-webkit2-4.0 libcanberra-gtk3-module
 
     - name: Install hatch
       run: |
         python -m pip install hatch toga
     - name: Tests
-      run: hatch run +py=${{ matrix.python-version }} test:test
+      run: xvfb-run -a hatch run +py=${{ matrix.python-version }} test:test
