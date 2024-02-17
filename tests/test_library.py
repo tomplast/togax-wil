@@ -2,7 +2,7 @@ import pytest
 from togawil import BreadcrumbAccessor, load_widget_from_string
 import toga
 
-from src.togawil import LineReader, extract_line_parts
+from togawil import LineReader, extract_line_parts
 
 
 def test_load_one_level_widget_tree_from_string():
