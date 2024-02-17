@@ -1,9 +1,10 @@
 from __future__ import annotations
 import toga  # type: ignore
 import toga.style  # type: ignore
-from typing import Optional
+from typing import Any, Optional
 import re
 import sys
+import inspect
 
 LINE_SYNTAX = re.compile(r"^( *)([a-zA-Z_\?]+:) *?([\=\.\:\/\&a-zA-Z0-9_\? \'\"]+|) *$")
 
@@ -52,7 +53,7 @@ class BreadcrumbAccessor:
     def __init__(self, widget: toga.Widget):
         self._widget = widget
 
-    def __getitem__(self, key) -> toga.Widget:
+    def __getitem__(self, key) -> Optional[toga.Widget]:
         o = None
         current_widget = None
         current_path = ""
@@ -64,7 +65,7 @@ class BreadcrumbAccessor:
                     x for x in (current_widget or self._widget).children if x.id == k
                 )
             except StopIteration:
-                raise KeyError (
+                raise KeyError(
                     f"Could not find widget with id {k} in {current_widget} ({current_path.rstrip('.')})"
                 )
 
@@ -72,21 +73,25 @@ class BreadcrumbAccessor:
 
 
 def load_widget_from_string(string: str) -> toga.Widget:
-    scope = {'local': {}, 'module': {}} 
-    import inspect
-    scope['local'] = inspect.currentframe().f_back.f_locals
+    scope: dict[str, dict[str, object]] = {"local": {}, "module": {}}
+    current_frame = inspect.currentframe() 
+    if current_frame and current_frame.f_back:
+        scope["local"] = current_frame.f_back.f_locals
+    
     caller_filename = inspect.getframeinfo(sys._getframe(1)).filename
 
     try:
         for i in range(0, 100):
             frame = sys._getframe(i)
             frame_info = inspect.getframeinfo(frame)
-            if frame_info.filename == caller_filename and frame_info.function == '<module>':
-                scope['module'] = frame.f_locals
+            if (
+                frame_info.filename == caller_filename
+                and frame_info.function == "<module>"
+            ):
+                scope["module"] = frame.f_locals
                 break
     except ValueError:
         pass
-
 
     lines = LineReader([x for x in string.split("\n") if len(x) > 0])
 
@@ -131,7 +136,8 @@ def load_widget_from_string(string: str) -> toga.Widget:
                                 _return_widget_with_children(
                                     current_widget_name,
                                     returned_attributes,
-                                    returned_children,scope
+                                    returned_children,
+                                    scope,
                                 )
                             ]
                         )
@@ -149,7 +155,9 @@ def load_widget_from_string(string: str) -> toga.Widget:
                             if parent_widget_attributes != {}:
                                 children.append(
                                     _return_widget_instance(
-                                        current_widget_name, current_widget_attributes, scope
+                                        current_widget_name,
+                                        current_widget_attributes,
+                                        scope,
                                     )
                                 )
                             else:
@@ -157,7 +165,8 @@ def load_widget_from_string(string: str) -> toga.Widget:
                                     _return_widget_with_children(
                                         current_widget_name,
                                         current_widget_attributes,
-                                        children, scope
+                                        children,
+                                        scope,
                                     )
                                 ]
                             current_widget_attributes = {}
@@ -209,16 +218,20 @@ def load_widget_from_string(string: str) -> toga.Widget:
     return process_level(0)[0][0]
 
 
-def _return_widget_instance(widget_type_name, widget_type_attributes, scope: dict[str, str]=None) -> toga.Widget:
+def _return_widget_instance(
+    widget_type_name, widget_type_attributes, scope: dict[str, dict[str, object]]
+) -> toga.Widget:
 
-    for on_attribute in [x for x in widget_type_attributes if x.startswith('on_')]:
+    for on_attribute in [x for x in widget_type_attributes if x.startswith("on_")]:
         target_method = widget_type_attributes[on_attribute]
-        if target_method in scope['local']:
-            widget_type_attributes[on_attribute] = scope['local'][target_method]
-        elif target_method in scope['module']:
-            widget_type_attributes[on_attribute] = scope['module'][target_method]
+        if target_method in scope["local"]:
+            widget_type_attributes[on_attribute] = scope["local"][target_method]
+        elif target_method in scope["module"]:
+            widget_type_attributes[on_attribute] = scope["module"][target_method]
         else:
-            raise Exception(f'No handler with the name {target_method} for event {on_attribute}. Must be defined within calling method or inside current file at the top level!')
+            raise Exception(
+                f"No handler with the name {target_method} for event {on_attribute}. Must be defined within calling method or inside current file at the top level!"
+            )
 
     if "style" in widget_type_attributes and widget_type_attributes["style"] != "":
         widget_type_attributes["style"] = toga.style.Pack(
@@ -229,7 +242,10 @@ def _return_widget_instance(widget_type_name, widget_type_attributes, scope: dic
 
 
 def _return_widget_with_children(
-    widget_type_name, widget_type_attributes, child_widgets: list[toga.Widget], scope: dict[str, object] = None
+    widget_type_name,
+    widget_type_attributes,
+    child_widgets: list[toga.Widget],
+    scope: dict[str, dict[str, object]],
 ):
     widget = _return_widget_instance(widget_type_name, widget_type_attributes, scope)
     for child in child_widgets:

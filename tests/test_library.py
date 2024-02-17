@@ -2,6 +2,8 @@ import pytest
 from togawil import BreadcrumbAccessor, load_widget_from_string
 import toga
 
+from src.togawil import LineReader, extract_line_parts
+
 
 def test_load_one_level_widget_tree_from_string():
     widget_string = """
@@ -41,7 +43,7 @@ Box:
     assert type(widget.children[0]) is toga.PasswordInput
     assert (
         type(widget.children[1]) is toga.Label
-        and widget.children[1].id == 'label1'
+        and widget.children[1].id == "label1"
         and widget.children[1].text == 'Password is "password"'
     )
     assert (
@@ -132,6 +134,7 @@ Box:
 
     assert type(widget.children[2]) is toga.TextInput
 
+
 def test_box_ception():
     widget_string = '''
 Box:
@@ -150,6 +153,7 @@ Box:
     for i in range(0, 5):
         child = child.children[0] if child != None else widget.children[0]
         assert type(child) is toga.Box
+
 
 def test_another_thing():
     widget_string = """
@@ -186,11 +190,12 @@ Box:
 """
     widget = load_widget_from_string(widget_string)
     assert type(widget) is toga.Box
-    assert widget.style.direction == 'row'
+    assert widget.style.direction == "row"
     assert len(widget.children[0].children) == 2
-    assert widget.children[0].style.direction == 'column'
-    assert type(widget.children[0].children[0]) is toga.TextInput 
-    assert widget.children[0].children[0].id == 'text_1'
+    assert widget.children[0].style.direction == "column"
+    assert type(widget.children[0].children[0]) is toga.TextInput
+    assert widget.children[0].children[0].id == "text_1"
+
 
 def test_yet_another_thing():
     widget_string = """
@@ -221,6 +226,7 @@ Box:
     widget = load_widget_from_string(widget_string)
     assert type(widget) is toga.Box
 
+
 def test_breadcrumb_accessor():
     widget_string = """
 Box:
@@ -250,29 +256,48 @@ Box:
     widget = load_widget_from_string(widget_string)
 
     accessor = BreadcrumbAccessor(widget)
-    button1 = accessor['box1.button1']
-    assert type(button1) is toga.Button 
+    button1 = accessor["box1.button1"]
+    assert type(button1) is toga.Button
 
 
 def test_invalid_accessor_use():
-    widget = load_widget_from_string("""
+    widget = load_widget_from_string(
+        """
 Box:
     Button:
         id: 'mybutton'
         text: "My button"
-""")
+"""
+    )
 
     with pytest.raises(KeyError):
-        BreadcrumbAccessor(widget)['button1']
+        BreadcrumbAccessor(widget)["button1"]
+
 
 def test_button_on_press():
     def my_handler(widget):
-        raise Exception('BO')
+        raise Exception("BO")
 
-    widget = load_widget_from_string('''
+    widget = load_widget_from_string(
+        """
 Box:
     Button:
         text: 'My button'
-        on_press: my_handler''')
+        on_press: my_handler"""
+    )
 
-    widget.children[0].on_press('')
+    widget.children[0].on_press("")
+
+
+def test_extract_line_parts_with_valid_data():
+    extract_line_parts("Box:")
+
+
+def test_extract_line_parts_with_invalid_data():
+    with pytest.raises(Exception):
+        extract_line_parts("Box")
+
+
+def test_line_reader_current_line():
+    reader = LineReader("Yet\nAnother\nString")
+    assert reader.current_line_number == 1
