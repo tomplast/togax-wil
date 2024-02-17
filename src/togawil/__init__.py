@@ -54,7 +54,6 @@ class BreadcrumbAccessor:
         self._widget = widget
 
     def __getitem__(self, key) -> Optional[toga.Widget]:
-        o = None
         current_widget = None
         current_path = ""
 
