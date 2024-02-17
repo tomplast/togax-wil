@@ -1,6 +1,4 @@
 import toga
-from toga.style.pack import COLUMN, LEFT, RIGHT, ROW, Pack
-
 from togawil import load_widget_from_string, BreadcrumbAccessor
 
 
