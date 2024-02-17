@@ -1,3 +1,5 @@
+![](https://github.com/tomplast/togawil/actions/workflows/python-tests.yml/badge.svg?branch=dev) 
+
 Load Toga widgets from YAML like format
 
 Usage example:

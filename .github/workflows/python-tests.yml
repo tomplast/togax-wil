@@ -1,5 +1,4 @@
 name: "CI"
-
 on:
   push:
     branches: [ dev ]
@@ -17,13 +16,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-
+        cache: 'pip' # caching pip dependencies
     - name: Install APT packages
-      run: sudo apt-get update && sudo apt install xvfb pkg-config python3-dev libgirepository1.0-dev libcairo2-dev gir1.2-webkit2-4.0 libcanberra-gtk3-module
-
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: xvfb pkg-config python3-dev libgirepository1.0-dev libcairo2-dev gir1.2-webkit2-4.0 libcanberra-gtk3-module
+        version: 1.0
     - name: Install hatch
       run: |
         python -m pip install hatch toga
