@@ -3,6 +3,7 @@ import toga  # type: ignore
 import toga.style  # type: ignore
 from typing import Optional
 import re
+import sys
 
 LINE_SYNTAX = re.compile(r"^( *)([a-zA-Z_\?]+:) *?([\=\.\:\/\&a-zA-Z0-9_\? \'\"]+|) *$")
 
@@ -71,6 +72,22 @@ class BreadcrumbAccessor:
 
 
 def load_widget_from_string(string: str) -> toga.Widget:
+    scope = {'local': {}, 'module': {}} 
+    import inspect
+    scope['local'] = inspect.currentframe().f_back.f_locals
+    caller_filename = inspect.getframeinfo(sys._getframe(1)).filename
+
+    try:
+        for i in range(0, 100):
+            frame = sys._getframe(i)
+            frame_info = inspect.getframeinfo(frame)
+            if frame_info.filename == caller_filename and frame_info.function == '<module>':
+                scope['module'] = frame.f_locals
+                break
+    except ValueError:
+        pass
+
+
     lines = LineReader([x for x in string.split("\n") if len(x) > 0])
 
     def process_level(initial_indentation):
@@ -88,7 +105,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
                 if current_widget_name != None:
                     children.append(
                         _return_widget_instance(
-                            current_widget_name, current_widget_attributes
+                            current_widget_name, current_widget_attributes, scope
                         )
                     )
                     current_widget_attributes = {}
@@ -114,7 +131,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
                                 _return_widget_with_children(
                                     current_widget_name,
                                     returned_attributes,
-                                    returned_children,
+                                    returned_children,scope
                                 )
                             ]
                         )
@@ -132,7 +149,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
                             if parent_widget_attributes != {}:
                                 children.append(
                                     _return_widget_instance(
-                                        current_widget_name, current_widget_attributes
+                                        current_widget_name, current_widget_attributes, scope
                                     )
                                 )
                             else:
@@ -140,7 +157,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
                                     _return_widget_with_children(
                                         current_widget_name,
                                         current_widget_attributes,
-                                        children,
+                                        children, scope
                                     )
                                 ]
                             current_widget_attributes = {}
@@ -155,7 +172,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
                     if current_widget_name != None:
                         children.append(
                             _return_widget_instance(
-                                current_widget_name, current_widget_attributes
+                                current_widget_name, current_widget_attributes, scope
                             )
                         )
                         current_widget_attributes = {}
@@ -172,7 +189,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
             if initial_indentation > 0 and len(children) > 0:
                 children.append(
                     _return_widget_instance(
-                        current_widget_name, current_widget_attributes
+                        current_widget_name, current_widget_attributes, scope
                     )
                 )
                 return children, parent_widget_attributes, 1
@@ -180,7 +197,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
             return (
                 [
                     _return_widget_instance(
-                        current_widget_name, current_widget_attributes
+                        current_widget_name, current_widget_attributes, scope
                     )
                 ],
                 parent_widget_attributes,
@@ -192,7 +209,17 @@ def load_widget_from_string(string: str) -> toga.Widget:
     return process_level(0)[0][0]
 
 
-def _return_widget_instance(widget_type_name, widget_type_attributes) -> toga.Widget:
+def _return_widget_instance(widget_type_name, widget_type_attributes, scope: dict[str, str]=None) -> toga.Widget:
+
+    for on_attribute in [x for x in widget_type_attributes if x.startswith('on_')]:
+        target_method = widget_type_attributes[on_attribute]
+        if target_method in scope['local']:
+            widget_type_attributes[on_attribute] = scope['local'][target_method]
+        elif target_method in scope['module']:
+            widget_type_attributes[on_attribute] = scope['module'][target_method]
+        else:
+            raise Exception(f'No handler with the name {target_method} for event {on_attribute}. Must be defined within calling method or inside current file at the top level!')
+
     if "style" in widget_type_attributes and widget_type_attributes["style"] != "":
         widget_type_attributes["style"] = toga.style.Pack(
             **widget_type_attributes["style"]
@@ -202,9 +229,9 @@ def _return_widget_instance(widget_type_name, widget_type_attributes) -> toga.Wi
 
 
 def _return_widget_with_children(
-    widget_type_name, widget_type_attributes, child_widgets: list[toga.Widget]
+    widget_type_name, widget_type_attributes, child_widgets: list[toga.Widget], scope: dict[str, object] = None
 ):
-    widget = _return_widget_instance(widget_type_name, widget_type_attributes)
+    widget = _return_widget_instance(widget_type_name, widget_type_attributes, scope)
     for child in child_widgets:
         widget.add(child)
 

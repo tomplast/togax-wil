@@ -265,8 +265,14 @@ Box:
     with pytest.raises(KeyError):
         BreadcrumbAccessor(widget)['button1']
 
-def test_webview_view_url():
-    widget = load_widget_from_string("""
-WebView:
-    url: 'http://www.example.com?q=1&x=5'
-""")
+def test_button_on_press():
+    def my_handler(widget):
+        raise Exception('BO')
+
+    widget = load_widget_from_string('''
+Box:
+    Button:
+        text: 'My button'
+        on_press: my_handler''')
+
+    widget.children[0].on_press('')
