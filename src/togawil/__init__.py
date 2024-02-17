@@ -93,7 +93,7 @@ def load_widget_from_string(string: str) -> toga.Widget:
     except ValueError:
         pass
 
-    lines = LineReader([x for x in string.split("\n") if len(x) > 0])
+    lines = LineReader([x for x in string.split("\n") if len(x) > 0 and len(x) != x.count(' ')])
 
     def process_level(initial_indentation):
         current_widget_name = None

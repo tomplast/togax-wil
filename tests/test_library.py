@@ -301,3 +301,9 @@ def test_extract_line_parts_with_invalid_data():
 def test_line_reader_current_line():
     reader = LineReader("Yet\nAnother\nString")
     assert reader.current_line_number == 1
+
+def test_invalid_widget_ending_line():
+    load_widget_from_string("""
+Box:
+                            
+                            """)
