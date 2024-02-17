@@ -227,6 +227,12 @@ Box:
     assert type(widget) is toga.Box
 
 
+def test_too_many_root_widgets():
+    with pytest.raises(Exception):
+        load_widget_from_string('''
+Box:
+Box:''')
+
 def test_breadcrumb_accessor():
     widget_string = """
 Box:

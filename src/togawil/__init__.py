@@ -203,6 +203,9 @@ def load_widget_from_string(string: str) -> toga.Widget:
                 )
                 return children, parent_widget_attributes, 1
 
+            if len(children) > 0 and initial_indentation == 0:
+                raise Exception('Error! Only one root element is allowed!')
+            
             return (
                 [
                     _return_widget_instance(
