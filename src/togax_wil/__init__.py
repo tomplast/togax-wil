@@ -1,7 +1,7 @@
 from __future__ import annotations
 import toga  # type: ignore
 import toga.style  # type: ignore
-from typing import Any, Optional
+from typing import Optional
 import re
 import sys
 import inspect
@@ -243,12 +243,21 @@ def _return_widget_instance(
 
     for on_attribute in (x for x in widget_type_attributes if x.startswith("on_")):
         target_method = widget_type_attributes[on_attribute]
-        
+
         if target_method in scope["local"]:
             widget_type_attributes[on_attribute] = scope["local"][target_method]
         elif target_method in scope["module"]:
             widget_type_attributes[on_attribute] = scope["module"][target_method]
         else:
+            if "self" in scope["local"]:
+                try:
+                    widget_type_attributes[on_attribute] = getattr(
+                        scope["local"]["self"], target_method
+                    )
+                    break
+                finally:
+                    pass
+
             raise Exception(
                 f"No handler with the name {target_method} for event {on_attribute}. Must be defined within calling method or inside current file at the top level!"
             )

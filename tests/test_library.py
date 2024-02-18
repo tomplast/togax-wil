@@ -313,3 +313,21 @@ def test_invalid_widget_ending_line():
 Box:
                             
                             """)
+
+
+def test_button_with_handler_in_object():
+    class JustAnotherClass:
+        def handle_click(self, widget):
+            pass
+
+        def build(self):
+            return load_widget_from_string("""
+Box:
+    Button:
+        text: 'CLICK'
+        on_press: handle_click
+                                           """)
+            
+    cls = JustAnotherClass()
+    widget = cls.build()
+    widget.children[0].on_press()
