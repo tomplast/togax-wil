@@ -23,6 +23,8 @@ for c in dir(toga):
             if x[0] == "__annotations__"
         )[1]
         TOGA_WIDGETS_CONSTRUCTOR_TYPE_HINTS[c] = annotations
+    except StopIteration:
+        pass
     except Exception as e:
         raise Exception(
             f"An unexpected error occured while looking for constructor type hints for widget {c}!"
