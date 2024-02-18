@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "togawil"
+name = "togax-wil"
 dynamic = ["version"]
-description = 'Load togawil widgets from YAML like format'
+description = 'Load Toga widgets from YAML like format'
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
@@ -26,12 +26,12 @@ classifiers = [
 dependencies = ["toga==0.4.1"]
 
 [project.urls]
-Documentation = "https://github.com/tomplast/togawil#readme"
-Issues = "https://github.com/tomplast/togawil/issues"
-Source = "https://github.com/tomplast/togawil"
+Documentation = "https://github.com/tomplast/togax_wil#readme"
+Issues = "https://github.com/tomplast/togax_wil/issues"
+Source = "https://github.com/tomplast/togax_wil"
 
 [tool.hatch.version]
-path = "src/togawil/__about__.py"
+path = "src/togax_wil/__about__.py"
 
 [tool.hatch.envs.default]
 dependencies = [
@@ -61,19 +61,19 @@ dependencies = [
   "mypy>=1.0.0",
 ]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/togawil tests}"
+check = "mypy --install-types --non-interactive {args:src/togax_wil tests}"
 
 [tool.coverage.run]
-source_pkgs = ["togawil", "tests"]
+source_pkgs = ["togax_wil", "tests"]
 branch = true
 parallel = true
 omit = [
-  "src/togawil/__about__.py",
+  "src/togax_wil/__about__.py",
 ]
 
 [tool.coverage.paths]
-togawil = ["src/togawil", "*/togawil/src/togawil"]
-tests = ["tests", "*/togawil/tests"]
+togax_wil = ["src/togax_wil", "*/togax_wil/src/togax_wil"]
+tests = ["tests", "*/togax_wil/tests"]
 
 [tool.coverage.report]
 exclude_lines = [

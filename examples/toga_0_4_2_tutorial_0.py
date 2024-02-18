@@ -1,5 +1,5 @@
 import toga
-from togawil import load_widget_from_string
+from togax_wil import load_widget_from_string
 
 def button_handler(widget):
     print('hello')

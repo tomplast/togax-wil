@@ -73,10 +73,10 @@ class BreadcrumbAccessor:
 
 def load_widget_from_string(string: str) -> toga.Widget:
     scope: dict[str, dict[str, object]] = {"local": {}, "module": {}}
-    current_frame = inspect.currentframe() 
+    current_frame = inspect.currentframe()
     if current_frame and current_frame.f_back:
         scope["local"] = current_frame.f_back.f_locals
-    
+
     caller_filename = inspect.getframeinfo(sys._getframe(1)).filename
 
     try:
@@ -92,7 +92,9 @@ def load_widget_from_string(string: str) -> toga.Widget:
     except ValueError:
         pass
 
-    lines = LineReader([x for x in string.split("\n") if len(x) > 0 and len(x) != x.count(' ')])
+    lines = LineReader(
+        [x for x in string.split("\n") if len(x) > 0 and len(x) != x.count(" ")]
+    )
 
     def process_level(initial_indentation):
         current_widget_name = None
@@ -196,8 +198,8 @@ def load_widget_from_string(string: str) -> toga.Widget:
                 return children, parent_widget_attributes, 1
 
             if len(children) > 0 and initial_indentation == 0:
-                raise Exception('Error! Only one root element is allowed!')
-            
+                raise Exception("Error! Only one root element is allowed!")
+
             return (
                 [
                     _return_widget_instance(
@@ -217,8 +219,9 @@ def _return_widget_instance(
     widget_type_name, widget_type_attributes, scope: dict[str, dict[str, object]]
 ) -> toga.Widget:
 
-    for on_attribute in [x for x in widget_type_attributes if x.startswith("on_")]:
+    for on_attribute in (x for x in widget_type_attributes if x.startswith("on_")):
         target_method = widget_type_attributes[on_attribute]
+        
         if target_method in scope["local"]:
             widget_type_attributes[on_attribute] = scope["local"][target_method]
         elif target_method in scope["module"]:

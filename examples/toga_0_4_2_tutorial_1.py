@@ -1,5 +1,5 @@
 import toga
-from togawil import load_widget_from_string, BreadcrumbAccessor
+from togax_wil import load_widget_from_string, BreadcrumbAccessor
 
 
 def build(app):
