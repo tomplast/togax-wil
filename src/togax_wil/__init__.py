@@ -6,7 +6,27 @@ import re
 import sys
 import inspect
 
-LINE_SYNTAX = re.compile(r"^( *)([a-zA-Z_\?]+:) *?([\=\.\:\/\&a-zA-Z0-9_\? \'\"]+|) *$")
+LINE_SYNTAX = re.compile(
+    r"^( *)([a-zA-Z_\?]+:) *?([\=\.\:\/\&a-zA-Z0-9_\-\? \'\"]+|) *$"
+)
+
+TOGA_WIDGETS_CONSTRUCTOR_TYPE_HINTS: dict[str, dict[str, str]] = {}
+
+for c in dir(toga):
+    try:
+        if c.startswith("_") or c[0].islower():
+            continue
+
+        annotations = next(
+            x
+            for x in inspect.getmembers(getattr(toga, c).__init__)
+            if x[0] == "__annotations__"
+        )[1]
+        TOGA_WIDGETS_CONSTRUCTOR_TYPE_HINTS[c] = annotations
+    except Exception as e:
+        raise Exception(
+            f"An unexpected error occured while looking for constructor type hints for widget {c}!"
+        ) from e
 
 
 class LineReader:
@@ -230,6 +250,16 @@ def _return_widget_instance(
             raise Exception(
                 f"No handler with the name {target_method} for event {on_attribute}. Must be defined within calling method or inside current file at the top level!"
             )
+
+    if widget_annotations := TOGA_WIDGETS_CONSTRUCTOR_TYPE_HINTS.get(widget_type_name):
+        for k in widget_type_attributes:
+            if not k in widget_annotations:
+                continue
+
+            if widget_annotations[k].startswith("float"):
+                widget_type_attributes[k] = float(widget_type_attributes[k])
+            elif widget_annotations[k].startswith("int"):
+                widget_type_attributes[k] = int(widget_type_attributes[k])
 
     if "style" in widget_type_attributes and widget_type_attributes["style"] != "":
         widget_type_attributes["style"] = toga.style.Pack(
